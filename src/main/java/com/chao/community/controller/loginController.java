@@ -3,7 +3,7 @@ package com.chao.community.controller;
 import com.chao.community.DTO.GitHubDTO;
 import com.chao.community.DTO.GitHubUserDTO;
 import com.chao.community.POJO.GitHubUser;
-import com.chao.community.mapper.GitHubUserMapper;
+import com.chao.community.mapper.UserMapper;
 import com.chao.community.provider.GitHubProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import javax.annotation.Resource;
 import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.UUID;
 
@@ -20,7 +19,7 @@ public class loginController {
     @Resource
     private GitHubProvider gitHubProvider;
     @Resource
-    private GitHubUserMapper gitHubUserMapper;
+    private UserMapper userMapper;
     @Value("${github.client.id}")
     private String client_id;
     @Value("${github.client.secret}")
@@ -40,7 +39,6 @@ public class loginController {
     @GetMapping("/oauth/redirect")
     public String redirect(@RequestParam(name = "code") String code,
                            @RequestParam(name = "state") String state,
-                           HttpServletRequest request,
                            HttpServletResponse response){
         GitHubDTO gitHubDTO = new GitHubDTO();
         gitHubDTO.setClient_id(client_id);
@@ -51,7 +49,7 @@ public class loginController {
         String accessToken = gitHubProvider.getAccessToken(gitHubDTO);
         GitHubUserDTO gitHubUserDTO = gitHubProvider.getGitHubUser(accessToken);
         if(gitHubUserDTO != null){
-            GitHubUser gitHubUser = gitHubUserMapper.queryById(gitHubUserDTO.getId());
+            GitHubUser gitHubUser = userMapper.queryById(gitHubUserDTO.getId());
             if(gitHubUser == null){
                 gitHubUser = new GitHubUser();
                 gitHubUser.setGmtCreate(System.currentTimeMillis());
@@ -59,7 +57,8 @@ public class loginController {
                 gitHubUser.setAccountId(gitHubUserDTO.getId());
                 gitHubUser.setToken(UUID.randomUUID().toString());
                 gitHubUser.setName(gitHubUserDTO.getLogin());
-                gitHubUserMapper.insertUser(gitHubUser);
+                gitHubUser.setAvatarUrl(gitHubUserDTO.getAvatarUrl());
+                userMapper.insertUser(gitHubUser);
             }
             Cookie cookie = new Cookie("myToken", gitHubUser.getToken());
             cookie.setMaxAge(Integer.MAX_VALUE);

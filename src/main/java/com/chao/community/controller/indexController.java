@@ -1,7 +1,7 @@
 package com.chao.community.controller;
 
 import com.chao.community.POJO.GitHubUser;
-import com.chao.community.mapper.GitHubUserMapper;
+import com.chao.community.mapper.UserMapper;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
@@ -13,7 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 public class indexController {
 
     @Resource
-    private GitHubUserMapper gitHubUserMapper;
+    private UserMapper userMapper;
 
     @GetMapping("/")
     public String index(HttpServletRequest request){
@@ -22,7 +22,7 @@ public class indexController {
             for(Cookie cookie : cookies){
                 if(cookie.getName().equals("myToken")){
                     String token = cookie.getValue();
-                    GitHubUser gitHubUser = gitHubUserMapper.queryByToken(token);
+                    GitHubUser gitHubUser = userMapper.queryByToken(token);
                     if(gitHubUser!=null){
                         request.getSession().setAttribute("user",gitHubUser);
                     }
